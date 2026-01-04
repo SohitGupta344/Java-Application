@@ -1,0 +1,94 @@
+trigger:
+- main
+
+pool:
+  name: Default   # Self-hosted agent (Tomcat + SonarQube installed)
+
+variables:
+  MAVEN_OPTS: "-Xmx1024m"
+  TOMCAT_HOME: "C:\\apache-tomcat-9.0.xx"   # 👈 apna actual path daalo
+  WAR_NAME: "JavaLoginShowcase-1.0.0.war"
+
+# =================================================
+# STAGE 1: SONARQUBE ANALYSIS
+# =================================================
+stages:
+- stage: Sonar
+  displayName: SonarQube Code Analysis
+  jobs:
+  - job: SonarScan
+    displayName: SonarQube Scan Job
+    steps:
+
+    - task: SonarQubePrepare@5
+      displayName: Prepare SonarQube
+      inputs:
+        SonarQube: 'sonarqube-local'
+        scannerMode: 'CLI'
+        configMode: 'file'
+
+    - task: SonarQubeAnalyze@5
+      displayName: Run SonarQube Analysis
+
+    - task: SonarQubePublish@5
+      displayName: Quality Gate Result
+      inputs:
+        pollingTimeoutSec: '300'
+
+# =================================================
+# STAGE 2: BUILD (MAVEN WAR)
+# =================================================
+- stage: Build
+  displayName: Maven Build Stage
+  dependsOn: Sonar
+  condition: succeeded()
+  jobs:
+  - job: BuildJob
+    displayName: Build WAR Job
+    steps:
+
+    - task: Maven@4
+      displayName: Maven Clean Package
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'clean package'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: '1.17'
+        publishJUnitResults: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish WAR Artifact
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/target'
+        artifact: 'war-drop'
+
+# =================================================
+# STAGE 3: DEPLOY TO TOMCAT
+# =================================================
+- stage: Deploy
+  displayName: Deploy to Tomcat
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    displayName: Tomcat Deployment Job
+    steps:
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download WAR Artifact
+      inputs:
+        artifact: 'war-drop'
+        path: '$(System.DefaultWorkingDirectory)/deploy'
+
+    - powershell: |
+        Write-Host "Stopping Tomcat"
+        & "$(TOMCAT_HOME)\bin\shutdown.bat"
+        Start-Sleep -Seconds 10
+
+        Write-Host "Deploying WAR to Tomcat"
+        Copy-Item "$(System.DefaultWorkingDirectory)\deploy\$(WAR_NAME)" `
+                  "$(TOMCAT_HOME)\webapps\JavaLoginShowcase.war" -Force
+
+        Write-Host "Starting Tomcat"
+        & "$(TOMCAT_HOME)\bin\startup.bat"
+      displayName: Deploy WAR to Tomcat
