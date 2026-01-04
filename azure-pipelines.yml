@@ -30,7 +30,7 @@ stages:
 # ==================================
 # STAGE 2: BUILD (MAVEN WAR)
 # ==================================
-- stage: Build
+- stage: JavaBuild
   displayName: Build WAR
   dependsOn: StaticCodeAnalysis
   condition: succeeded()
@@ -66,7 +66,7 @@ stages:
 # ==================================
 - stage: Deploy
   displayName: Deploy to Tomcat
-  dependsOn: Build
+  dependsOn: javaBuild
   condition: succeeded()
   jobs:
   - job: DeployJob
