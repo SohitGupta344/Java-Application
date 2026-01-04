@@ -1,0 +1,13 @@
+mvn clean package
+
+cd target
+
+cp JavaLoginShowcase-1.0.0.war $env:TOMCAT_HOME\webapps\
+
+cd $env:TOMCAT_HOME\bin
+.\shutdown.bat
+.\startup.bat
+
+http://localhost:8080/JavaLoginShowcase-1.0.0
+
+
