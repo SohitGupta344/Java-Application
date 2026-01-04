@@ -41,7 +41,9 @@ stages:
       inputs:
         versionSpec: '17'
         jdkArchitectureOption: 'x64'
-        jdkSourceOption: 'PreInstalled'
+        jdkSourceOption: 'LocalDirectory'
+        jdkDestinationDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot'
+        cleanDestinationDirectory: true
         
     - task: Maven@4
       displayName: Maven Clean Package
