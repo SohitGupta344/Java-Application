@@ -14,33 +14,24 @@ stages:
 # ==================================
 # STAGE 1: SONARQUBE ANALYSIS
 # ==================================
-- stage: Sonar
-  displayName: SonarQube Analysis
-  jobs:
-  - job: SonarJob
-    displayName: Sonar Scan
+- stage: StaticCodeAnalysis
+  displayName: Static Code Analysis
+  jobs: 
+  - job: SonarQubeAnalysis
+    displayName: Static Code Analysis (SonarQube)
     steps:
-    - task: SonarQubePrepare@5
-      displayName: Prepare SonarQube
+    - task: PowerShell@2
+      displayName: Static Code Analysis
       inputs:
-        SonarQube: 'sonar-qube'
-        scannerMode: 'CLI'
-        configMode: 'file'
-
-    - task: SonarQubeAnalyze@5
-      displayName: Run SonarQube Analysis
-
-    - task: SonarQubePublish@5
-      displayName: Quality Gate
-      inputs:
-        pollingTimeoutSec: '300'
+        targetType: 'inline'
+        script: 'sonar-scanner --define sonar.projectKey=java-application --define sonar.projectName=java-application --define sonar.sources=src --define sonar.exclusions=node_modules/**,build/** --define sonar.host.url=http://localhost:9000 --define sonar.token=sqp_1ec77f76707017438dea02caf728439b66f849bd'
 
 # ==================================
 # STAGE 2: BUILD (MAVEN WAR)
 # ==================================
 - stage: Build
   displayName: Build WAR
-  dependsOn: Sonar
+  dependsOn: StaticCodeAnalysis
   condition: succeeded()
   jobs:
   - job: BuildJob
