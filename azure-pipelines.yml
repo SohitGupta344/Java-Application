@@ -8,6 +8,7 @@ variables:
   MAVEN_OPTS: "-Xmx1024m"
   TOMCAT_HOME: "C:\\Tools\\tomcat\\apache-tomcat-9.0.113"
   WAR_NAME: "JavaLoginShowcase-1.0.0.war"
+  JAVA_HOME: $(JAVA_HOME_17)
 
 stages:
 
@@ -37,20 +38,14 @@ stages:
   - job: BuildJob
     displayName: Maven Build
     steps:
-    - task: JavaToolInstaller@1
-      inputs:
-        versionSpec: '17'
-        jdkArchitectureOption: 'x64'
-        jdkSourceOption: 'LocalDirectory'
-        jdkDestinationDirectory: 'C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot'
-        cleanDestinationDirectory: true
-        
+            
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package'
         javaHomeOption: 'JDKVersion'
+        jdkDirectory: '$(JAVA_HOME)'
         jdkVersionOption: '1.17'
         publishJUnitResults: true
 
