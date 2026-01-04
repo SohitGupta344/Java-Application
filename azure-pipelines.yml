@@ -43,10 +43,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          - powershell: |
-                  echo "JAVA_HOME = $env:JAVA_HOME"
-                  java -version
-                displayName: Verify Java
+          echo "JAVA_HOME = $env:JAVA_HOME"
+                java -version
+                mvn -version
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
