@@ -8,7 +8,7 @@ variables:
   MAVEN_OPTS: "-Xmx1024m"
   TOMCAT_HOME: "C:\\Tools\\tomcat\\apache-tomcat-9.0.113"
   WAR_NAME: "JavaLoginShowcase-1.0.0.war"
-  JAVA_HOME: C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot
+  JAVA_HOME: "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.17.10-hotspot"
 
 stages:
 
@@ -38,22 +38,19 @@ stages:
   - job: BuildJob
     displayName: Maven Build
     steps:
-
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
-          echo "JAVA_HOME = $env:JAVA_HOME"
-                java -version
-                mvn -version
+          echo "JAVA_HOME = $env:JAVA_HOME"& "$env:JAVA_HOME\bin\java.exe" -version
+           mvn -version
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
         mavenPomFile: 'pom.xml'
         goals: 'clean package'
-        javaHomeOption: 'JDKVersion'
+        javaHomeOption: 'Path'
         jdkDirectory: '$(JAVA_HOME)'
-        jdkVersionOption: '1.17'
         publishJUnitResults: true
 
     - task: PublishPipelineArtifact@1
