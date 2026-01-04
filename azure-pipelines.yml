@@ -2,28 +2,28 @@ trigger:
 - main
 
 pool:
-  name: Default   # Self-hosted agent (Tomcat + SonarQube installed)
+  name: Default   # Self-hosted agent (Tomcat + SonarQube yahin installed)
 
 variables:
   MAVEN_OPTS: "-Xmx1024m"
-  TOMCAT_HOME: "C:\\apache-tomcat-9.0.xx"   # 👈 apna actual path daalo
+  TOMCAT_HOME: "C:\\Tools\\tomcat\\apache-tomcat-9.0.113"
   WAR_NAME: "JavaLoginShowcase-1.0.0.war"
 
-# =================================================
-# STAGE 1: SONARQUBE ANALYSIS
-# =================================================
 stages:
-- stage: Sonar
-  displayName: SonarQube Code Analysis
-  jobs:
-  - job: SonarScan
-    displayName: SonarQube Scan Job
-    steps:
 
+# ==================================
+# STAGE 1: SONARQUBE ANALYSIS
+# ==================================
+- stage: Sonar
+  displayName: SonarQube Analysis
+  jobs:
+  - job: SonarJob
+    displayName: Sonar Scan
+    steps:
     - task: SonarQubePrepare@5
       displayName: Prepare SonarQube
       inputs:
-        SonarQube: 'sonarqube-local'
+        SonarQube: 'sonar-qube'
         scannerMode: 'CLI'
         configMode: 'file'
 
@@ -31,22 +31,21 @@ stages:
       displayName: Run SonarQube Analysis
 
     - task: SonarQubePublish@5
-      displayName: Quality Gate Result
+      displayName: Quality Gate
       inputs:
         pollingTimeoutSec: '300'
 
-# =================================================
+# ==================================
 # STAGE 2: BUILD (MAVEN WAR)
-# =================================================
+# ==================================
 - stage: Build
-  displayName: Maven Build Stage
+  displayName: Build WAR
   dependsOn: Sonar
   condition: succeeded()
   jobs:
   - job: BuildJob
-    displayName: Build WAR Job
+    displayName: Maven Build
     steps:
-
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
@@ -62,20 +61,19 @@ stages:
         targetPath: '$(System.DefaultWorkingDirectory)/target'
         artifact: 'war-drop'
 
-# =================================================
+# ==================================
 # STAGE 3: DEPLOY TO TOMCAT
-# =================================================
+# ==================================
 - stage: Deploy
   displayName: Deploy to Tomcat
   dependsOn: Build
   condition: succeeded()
   jobs:
   - job: DeployJob
-    displayName: Tomcat Deployment Job
+    displayName: Tomcat Deployment
     steps:
-
     - task: DownloadPipelineArtifact@2
-      displayName: Download WAR Artifact
+      displayName: Download WAR
       inputs:
         artifact: 'war-drop'
         path: '$(System.DefaultWorkingDirectory)/deploy'
@@ -85,7 +83,7 @@ stages:
         & "$(TOMCAT_HOME)\bin\shutdown.bat"
         Start-Sleep -Seconds 10
 
-        Write-Host "Deploying WAR to Tomcat"
+        Write-Host "Deploying WAR"
         Copy-Item "$(System.DefaultWorkingDirectory)\deploy\$(WAR_NAME)" `
                   "$(TOMCAT_HOME)\webapps\JavaLoginShowcase.war" -Force
 
