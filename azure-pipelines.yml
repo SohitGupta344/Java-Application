@@ -42,8 +42,10 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          echo "JAVA_HOME = $env:JAVA_HOME"& "$env:JAVA_HOME\bin\java.exe" -version
-           mvn -version
+          echo "JAVA_HOME = $env:JAVA_HOME"
+          & "$env:JAVA_HOME\bin\java.exe" -version
+          mvn -version
+
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
