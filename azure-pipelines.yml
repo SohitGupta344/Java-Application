@@ -8,7 +8,7 @@ variables:
   MAVEN_OPTS: "-Xmx1024m"
   TOMCAT_HOME: "C:\\Tools\\tomcat\\apache-tomcat-9.0.113"
   WAR_NAME: "JavaLoginShowcase-1.0.0.war"
-  JAVA_HOME: C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot\bin
+  JAVA_HOME: C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot
 
 stages:
 
@@ -38,7 +38,15 @@ stages:
   - job: BuildJob
     displayName: Maven Build
     steps:
-            
+
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          - powershell: |
+                  echo "JAVA_HOME = $env:JAVA_HOME"
+                  java -version
+                displayName: Verify Java
     - task: Maven@4
       displayName: Maven Clean Package
       inputs:
